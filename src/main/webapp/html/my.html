@@ -4,8 +4,49 @@
     <script src=https://code.jquery.com/jquery-3.6.0.min.js></script>
     <link href="/css/my.css" rel="stylesheet">
 </head>
-<body>
+<body onload="table()">
 <h1>RPG admin panel</h1>
 
+<table id="playerInfo" class="playerInfo">
+    <tbody>
+    <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Title</th>
+        <th>Race</th>
+        <th>Profession</th>
+        <th>Level</th>
+        <th>Birthday</th>
+        <th>Banned</th>
+    </tr>
+    </tbody>
+</table>
+
+
+<script>
+    function table() {
+        $.get('/rest/players', function (data) {
+            $.each(data, function (i, entity) {
+                $('<tr>').html("<td>"
+                    + entity.id + "</td><td>"
+                    + entity.name + "</td><td>"
+                    + entity.title + "</td><td>"
+                    + entity.race + "</td><td>"
+                    + entity.profession + "</td><td>"
+                    + entity.level + "</td><td>"
+                    + new Date(entity.birthday).toLocaleDateString() + "</td><td>"
+                    + entity.banned + "</td>"
+                ).appendTo("#playerInfo");
+            });
+        });
+    }
+
+    <div id="pagen">Pages: </div>
+    function count() {
+        $.get('/rest/players/count', date)
+    }
+
+
+</script>
 </body>
 </html>
