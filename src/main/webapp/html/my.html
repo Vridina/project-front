@@ -1,31 +1,78 @@
-<html>
+<html lang="ru">
 <head>
     <title>RPG</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src=https://code.jquery.com/jquery-3.6.0.min.js></script>
     <link href="/css/my.css" rel="stylesheet">
-</head>
-<body onload="table()">
-<h1>RPG admin panel</h1>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
 
-<table id="playerInfo" class="playerInfo">
-    <tbody>
-    <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Title</th>
-        <th>Race</th>
-        <th>Profession</th>
-        <th>Level</th>
-        <th>Birthday</th>
-        <th>Banned</th>
-    </tr>
-    </tbody>
-</table>
+</head>
+<body onload="viewTable(0)">
+
+
+<div id="container" class="container">
+
+    <h1>RPG admin panel</h1>
+
+    <label for="showPlayers"> View: </label>
+    <select id="showPlayers" onchange=viewTable(0)>
+        <option value="3">3</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+    </select>
+
+    <table id="playerInfo" class="table table-hover">
+        <tbody>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Title</th>
+            <th>Race</th>
+            <th>Profession</th>
+            <th>Level</th>
+            <th>Birthday</th>
+            <th>Banned</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        </tbody>
+    </table>
+    <div id="pagen">Pages:</div>
+</div>
 
 
 <script>
-    function table() {
-        $.get('/rest/players', function (data) {
+
+    function viewTable(page_number) {
+        $("tr:has(td)").remove();
+        let url = '/rest/players';
+
+        let totalPlayers = numAllPlayers();
+
+        let playersPerPage = $("#showPlayers").val();
+        if (totalPlayers == 0) {
+            playersPerPage = 3;
+        }
+
+        let pages = Math.ceil(totalPlayers / playersPerPage);
+        if (page_number == null) {
+            page_number = 0;
+        }
+
+        url = url
+            .concat("?pageSize=").concat(playersPerPage)
+            .concat("&pageNumber=").concat(page_number);
+
+
+        console.log("урл - " + url);
+
+        $.get(url, function (data) {
             $.each(data, function (i, entity) {
                 $('<tr>').html("<td>"
                     + entity.id + "</td><td>"
@@ -35,18 +82,48 @@
                     + entity.profession + "</td><td>"
                     + entity.level + "</td><td>"
                     + new Date(entity.birthday).toLocaleDateString() + "</td><td>"
-                    + entity.banned + "</td>"
+                    + entity.banned + "</td><td>"
+
+                    + "<button id =button_edit_" + entity.id +
+                    "><img src='img/edit_grad.png'> </button>" + "</td><td>"
+                    + "<button id =button_delete_" + entity.id +
+                    "> <img src='img/delete_grad.png'></button>" + "</td>"
                 ).appendTo("#playerInfo");
             });
         });
+
+        $("button.btn").remove();
+
+        // let pages = 40;
+        for (let i = 0; i < pages; i++) {
+
+            let btnNum = "<button>" + (i + 1) + "</button>";
+            let attrBtn = $(btnNum)
+                .attr('id', "pagen_" + i)
+                .attr('onclick', "viewTable(" + i + ")")
+                .addClass('btn');
+            $('#pagen').append(attrBtn);
+        }
+
+        let ind = "#pagen_" + page_number;
+        $(ind).css('color', 'rgb(255,0,243)');
     }
 
-    <div id="pagen">Pages: </div>
-    function count() {
-        $.get('/rest/players/count', date)
+
+    function numAllPlayers() {
+        let res = 0;
+        $.ajax({
+            url: '/rest/players/count',
+            async: false,
+            success: function (result) {
+                res = parseInt(result);
+            }
+        });
+        return res;
     }
 
 
 </script>
 </body>
 </html>
+
