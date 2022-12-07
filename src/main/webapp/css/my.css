@@ -1,0 +1,9 @@
+img {
+    height: 30px;
+}
+
+button .button_manager {
+    border: none;
+    background: none;
+    height: 50px;
+}

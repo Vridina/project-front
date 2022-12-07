@@ -69,9 +69,6 @@
             .concat("?pageSize=").concat(playersPerPage)
             .concat("&pageNumber=").concat(page_number);
 
-
-        console.log("урл - " + url);
-
         $.get(url, function (data) {
             $.each(data, function (i, entity) {
                 $('<tr>').html("<td>"
@@ -84,10 +81,11 @@
                     + new Date(entity.birthday).toLocaleDateString() + "</td><td>"
                     + entity.banned + "</td><td>"
 
-                    + "<button id =button_edit_" + entity.id +
-                    "><img src='img/edit_grad.png'> </button>" + "</td><td>"
-                    + "<button id =button_delete_" + entity.id +
-                    "> <img src='img/delete_grad.png'></button>" + "</td>"
+                    + "<button onclick=editAcc(" + entity.id + ") class=btn type=button id=button_edit_" + entity.id +
+                    "><img src='/img/edit_grad.png'> </button>" + "</td><td>"
+
+                    + "<button onclick=delAcc(" + entity.id + ") class=btn type=button id =button_delete_" + entity.id +
+                    "> <img src='/img/delete_grad.png'></button>" + "</td>"
                 ).appendTo("#playerInfo");
             });
         });
@@ -122,6 +120,132 @@
         return res;
     }
 
+
+    function delAcc(idAcc) {
+        let url = "/rest/players/" + idAcc;
+        $.ajax({
+            url: url,
+            type: 'DELETE',
+            success: function () {
+                viewTable(currentPage());
+            }
+        })
+    }
+
+    function currentPage() {
+        let currentPage = 1;
+        $('button:parent(div)').each(function () {
+            if ($(this).css('color') === 'rgb(255,0,243)') {
+                currentPage = $(this).text();
+            }
+        })
+        return parseInt(currentPage) - 1;
+    }
+
+    function editAcc(id) {
+        let indEditBut = "#button_edit_" + id;
+        let saveImgTag = "<img src='/img/save_grad.png'>";
+        $(indEditBut).html(saveImgTag);
+
+        let indDelBut = "#button_delete_" + id;
+        $(indDelBut).remove();
+
+        let currentEnt = $(indEditBut).parent().parent();
+        let child = currentEnt.children();
+        let tdName = child[1];
+        tdName.innerHTML = "<input id=input_name_" + id + " type=text value=" + tdName.innerHTML + ">";
+
+        let tdTitle = child[2];
+        tdTitle.innerHTML = "<input id=input_title_" + id + " type=text value=" + tdTitle.innerHTML + ">";
+
+        let tdRace = child[3];
+        let idRace = "#select_race_" + id;
+        let raceCurrentValue = tdRace.innerHTML;
+        tdRace.innerHTML = getRace(id);
+        $(idRace).val(raceCurrentValue).change();
+
+
+        let tdProf = child[4];
+        let idProf = "#select_prof_" + id;
+        let profCurrentValue = tdProf.innerHTML;
+        tdProf.innerHTML = getProf(id);
+        $(idProf).val(profCurrentValue).change();
+
+
+        let tdBan = child[7];
+        let idBan = "#select_ban_" + id;
+        let baneCurrentValue = tdBan.innerHTML;
+        tdBan.innerHTML = getBanned(id);
+        $(idBan).val(baneCurrentValue).change();
+
+        let propSaveTag = "saveAcc(" + id + ")";
+        $(indEditBut).attr('onclick', propSaveTag);
+
+    }
+
+    function getRace(id) {
+        let raceId = "select_race_" + id;
+        return "<label for=race></label>" +
+            "<select id=" + raceId + " name='race'>" +
+            "<option value='HUMAN'>HUMAN</option>" +
+            "<option value='DWARF'>DWARF</option>" +
+            "<option value='ELF'>ELF</option>" +
+            "<option value='GIANT'>GIANT</option>" +
+            "<option value='ORC'>ORC</option>" +
+            "<option value='TROLL'>TROLL</option>" +
+            "<option value='HOBBIT'>HOBBIT</option>" +
+            "</select>";
+    }
+
+    function getBanned(id) {
+        let bannedId = "select_ban_" + id;
+        return "<label for=ban></label>" +
+            "<select id=" + bannedId + " name='ban'>" +
+            "<option value='false'>false</option>" +
+            "<option value='true'>true</option>" +
+            "</select>";
+    }
+
+    function getProf(id) {
+        let profId = "select_prof_" + id;
+        return "<label for=prof></label>" +
+            "<select id=" + profId + " name='prof'>" +
+            "<option value='WARRIOR'>WARRIOR</option>" +
+            "<option value='ROGUE'>ROGUE</option>" +
+            "<option value='SORCERER'>SORCERER</option>" +
+            "<option value='CLERIC'>CLERIC</option>" +
+            "<option value='PALADIN'>PALADIN</option>" +
+            "<option value='NAZGUL'>NAZGUL</option>" +
+            "<option value='WARLOCK'>WARLOCK</option>" +
+            "</select>";
+    }
+
+    function saveAcc(id) {
+        let valName = $("#input_name_" + id).val();
+        let valTitle = $("#input_title_" + id).val();
+        let valRace = $("#select_race_" + id).val();
+        let valProf = $("#select_prof_" + id).val();
+        let valBan = $("#select_ban_" + id).val();
+
+        let url = "/rest/players/" + id;
+        $.ajax({
+            url: url,
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            async: false,
+            data: JSON.stringify({
+                "name": valName,
+                "title": valTitle,
+                "race": valRace,
+                "profession": valProf,
+                "banned": valBan,
+            }),
+            success: function () {
+                viewTable(currentPage());
+            }
+        })
+    }
 
 </script>
 </body>
